@@ -2,8 +2,7 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const cors = require('cors');
 const connectDB = require('./config/connection');
-const userSchema = require('./schemas/userSchema');
-const userResolver = require('./resolvers/userResolver');
+const schema = require('./schema');
 const auth = require('./middleware/auth');
 require('dotenv').config();
 
@@ -18,8 +17,7 @@ app.use(auth);
 app.use(
   '/graphql',
   graphqlHTTP({
-    schema: userSchema,
-    rootValue: userResolver,
+    schema,
     graphiql: true,
   })
 );

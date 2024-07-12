@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/connection');
 const schema = require('./schema');
 const auth = require('./middleware/auth');
+const react = require('react');
 require('dotenv').config();
 
 const app = express();

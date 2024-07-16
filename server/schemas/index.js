@@ -1,88 +1,33 @@
-const { buildSchema } = require('graphql');
+const { GraphQLSchema, GraphQLObjectType } = require('graphql');
+const { userQueries, userMutations } = require('./user');
+const { incomeQueries, incomeMutations } = require('./income');
+const { expenseQueries, expenseMutations } = require('./expense');
+const { categoryQueries, categoryMutations } = require('./category');
+const { budgetQueries, budgetMutations } = require('./budget');
 
-module.exports = buildSchema(`
-  type User {
-    id: ID!
-    name: String!
-    email: String!
-    password: String!
-  }
+const RootQuery = new GraphQLObjectType({
+    name: 'RootQueryType',
+    fields: {
+        ...userQueries,
+        ...incomeQueries,
+        ...expenseQueries,
+        ...categoryQueries,
+        ...budgetQueries
+    }
+});
 
-  type AuthData {
-    userId: ID!
-    token: String!
-    tokenExpiration: Int!
-  }
+const Mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        ...userMutations,
+        ...incomeMutations,
+        ...expenseMutations,
+        ...categoryMutations,
+        ...budgetMutations
+    }
+});
 
-  type Income {
-    id: ID!
-    user: User!
-    amount: Float!
-    category: String!
-    date: String!
-    description: String
-  }
-
-  type Expense {
-    id: ID!
-    user: User!
-    amount: Float!
-    category: String!
-    date: String!
-    description: String
-  }
-
-  type Budget {
-    id: ID!
-    user: User!
-    totalIncome: Float!
-    totalExpenses: Float!
-    savings: Float!
-    date: String!
-  }
-
-  input UserInput {
-    name: String!
-    email: String!
-    password: String!
-  }
-
-  input IncomeInput {
-    amount: Float!
-    category: String!
-    date: String
-    description: String
-  }
-
-  input ExpenseInput {
-    amount: Float!
-    category: String!
-    date: String
-    description: String
-  }
-
-  input BudgetInput {
-    totalIncome: Float!
-    totalExpenses: Float!
-    savings: Float!
-  }
-
-  type RootQuery {
-    login(email: String!, password: String!): AuthData!
-    incomes: [Income!]!
-    expenses: [Expense!]!
-    budget: Budget
-  }
-
-  type RootMutation {
-    createUser(userInput: UserInput): User
-    addIncome(incomeInput: IncomeInput): Income
-    addExpense(expenseInput: ExpenseInput): Expense
-    setBudget(budgetInput: BudgetInput): Budget
-  }
-
-  schema {
-    query: RootQuery
-    mutation: RootMutation
-  }
-`);
+module.exports = new GraphQLSchema({
+    query: RootQuery,
+    mutation: Mutation
+});

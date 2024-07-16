@@ -1,28 +1,38 @@
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/connection');
-const schema = require('./schema');
-const auth = require('./middleware/auth');
-const react = require('react');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 
-// Connect Database
-connectDB();
-
+// Middleware
 app.use(cors());
-app.use(auth);
+app.use(express.json());
 
-app.use(
-  '/graphql',
-  graphqlHTTP({
-    schema,
-    graphiql: true,
-  })
-);
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
+mongoose.connection.once('open', () => {
+  console.log('Connected to MongoDB');
+});
+
+// GraphQL setup
+const schema = require('./schemas');
+
+app.use('/graphql', graphqlHTTP({
+  schema,
+  graphiql: true
+}));
+
+// Start the server
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

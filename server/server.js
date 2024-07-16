@@ -3,6 +3,7 @@ const { graphqlHTTP } = require('express-graphql');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const schema = require('./schemas');
 
 // Load environment variables
 dotenv.config();
@@ -10,22 +11,21 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors()); // Ensure CORS is configured
 app.use(express.json());
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect(process.env.MONGO_URI);
 
 mongoose.connection.once('open', () => {
   console.log('Connected to MongoDB');
 });
 
-// GraphQL setup
-const schema = require('./schemas');
+mongoose.connection.on('error', (err) => {
+  console.error('MongoDB connection error:', err);
+});
 
+// GraphQL setup
 app.use('/graphql', graphqlHTTP({
   schema,
   graphiql: true

@@ -6,28 +6,28 @@ const { categoryQueries, categoryMutations } = require('./category');
 const { budgetQueries, budgetMutations } = require('./budget');
 
 const RootQuery = new GraphQLObjectType({
-    name: 'RootQueryType',
-    fields: {
-        ...userQueries,
-        ...incomeQueries,
-        ...expenseQueries,
-        ...categoryQueries,
-        ...budgetQueries
-    }
+  name: 'RootQueryType',
+  fields: {
+    ...userQueries,
+    ...incomeQueries,
+    ...expenseQueries,
+    ...categoryQueries,
+    ...budgetQueries
+  }
 });
 
 const Mutation = new GraphQLObjectType({
-    name: 'Mutation',
-    fields: {
-        ...userMutations,
-        ...incomeMutations,
-        ...expenseMutations,
-        ...categoryMutations,
-        ...budgetMutations
-    }
+  name: 'Mutation',
+  fields: {
+    ...userMutations,
+    ...incomeMutations,
+    ...expenseMutations,
+    ...categoryMutations,
+    ...budgetMutations
+  }
 });
 
 module.exports = new GraphQLSchema({
-    query: RootQuery,
-    mutation: Mutation
+  query: RootQuery,
+  mutation: Mutation
 });

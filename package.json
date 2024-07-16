@@ -1,4 +1,11 @@
 {
+  "name": "project-root",
+  "version": "1.0.0",
+  "scripts": {
+    "client": "npm start --prefix client",
+    "server": "npm run dev --prefix server",
+    "dev": "concurrently \"npm run client\" \"npm run server\""
+  },
   "dependencies": {
     "@apollo/server": "^4.10.4",
     "bcryptjs": "^2.4.3",
@@ -12,6 +19,9 @@
     "react-scripts": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "concurrently": "^8.2.2",
+    "install": "^0.13.0",
+    "nodemon": "^3.1.4",
+    "npm": "^10.8.2"
   }
 }

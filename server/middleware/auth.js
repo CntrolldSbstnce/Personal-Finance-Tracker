@@ -6,14 +6,17 @@ dotenv.config();
 module.exports = (req, res, next) => {
   const token = req.header('Authorization');
   if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
+    req.isAuth = false;
+    return next();
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user;
+    req.isAuth = true;
+    req.userId = decoded.user.id;
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Token is not valid' });
+    req.isAuth = false;
+    return next();
   }
 };

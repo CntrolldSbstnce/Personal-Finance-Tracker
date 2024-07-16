@@ -1,31 +1,22 @@
-const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLNonNull, GraphQLList } = require('graphql');
+const { GraphQLString, GraphQLID, GraphQLNonNull, GraphQLList } = require('graphql');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
-const AuthPayloadType = require('./AuthPayload');
+const { getAuthPayloadType, getUserType } = require('./types');
 
 dotenv.config();
 
-const UserType = new GraphQLObjectType({
-  name: 'User',
-  fields: () => ({
-    id: { type: GraphQLID },
-    username: { type: GraphQLString },
-    email: { type: GraphQLString }
-  })
-});
-
 const userQueries = {
   user: {
-    type: UserType,
+    type: getUserType(),
     args: { id: { type: GraphQLID } },
     resolve(parent, args) {
       return User.findById(args.id);
     }
   },
   users: {
-    type: new GraphQLList(UserType),
+    type: new GraphQLList(getUserType()),
     resolve(parent, args) {
       return User.find({});
     }
@@ -34,7 +25,7 @@ const userQueries = {
 
 const userMutations = {
   register: {
-    type: AuthPayloadType,
+    type: getAuthPayloadType(),
     args: {
       username: { type: new GraphQLNonNull(GraphQLString) },
       email: { type: new GraphQLNonNull(GraphQLString) },
@@ -69,7 +60,7 @@ const userMutations = {
     }
   },
   login: {
-    type: AuthPayloadType,
+    type: getAuthPayloadType(),
     args: {
       email: { type: new GraphQLNonNull(GraphQLString) },
       password: { type: new GraphQLNonNull(GraphQLString) }
@@ -101,7 +92,6 @@ const userMutations = {
 };
 
 module.exports = {
-  UserType,
   userQueries,
   userMutations
 };

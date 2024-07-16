@@ -6,6 +6,9 @@ const schema = require('./schema');
 const auth = require('./middleware/auth');
 const react = require('react');
 require('dotenv').config();
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
 
 const app = express();
 

@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate} from "react-router-dom";
 
 const Dashboard = () => {
+  let navigate = useNavigate();
   return (
     <div>
       <h2>Dashboard</h2>
+      <button onClick={() => navigate(-1)}>Back</button>
       <nav>
         <ul>
           <li>

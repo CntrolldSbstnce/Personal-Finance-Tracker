@@ -1,9 +1,12 @@
 import React from 'react';
+import { BackButton } from '../components/BackButton';
 
 const Budget = () => {
+  
   return (
     <div>
       <h2>Budget</h2>
+      <BackButton/>
       <div>
         <h3>Set New Budget</h3>
         <form>

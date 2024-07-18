@@ -2,23 +2,25 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Expense = require('../models/Expense');
+const Budget = require('../models/Budget');
 const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLFloat } = require('graphql');
 const { UserType, UserInputType } = require('../schemas/user');
 const { ExpenseType, ExpenseInputType } = require('../schemas/expense');
+const { BudgetType, BudgetInputType, budgetMutations } = require('../schemas/budget');
 
 const AuthPayload = new GraphQLObjectType({
   name: 'AuthPayload',
   fields: {
     userId: { type: GraphQLID },
     token: { type: GraphQLString },
-    tokenExpiration: { type: GraphQLString },
-  },
+    tokenExpiration: { type: GraphQLString }
+  }
 });
 
 const createUserMutation = {
   type: UserType,
   args: {
-    userInput: { type: new GraphQLNonNull(UserInputType) },
+    userInput: { type: new GraphQLNonNull(UserInputType) }
   },
   async resolve(_, { userInput }) {
     const existingUser = await User.findOne({ email: userInput.email });
@@ -62,22 +64,21 @@ const loginMutation = {
 const expenseQueries = {
   expenses: {
     type: new GraphQLList(ExpenseType),
-    async resolve(parent, args, context) {
+    resolve(parent, args, context) {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
-      console.log('Fetching expenses for user:', context.userId);
-      return await Expense.find({ user: context.userId });
+      return Expense.find({ user: context.userId });
     },
   },
   expense: {
     type: ExpenseType,
     args: { id: { type: GraphQLID } },
-    async resolve(parent, args, context) {
+    resolve(parent, args, context) {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
-      return await Expense.findById(args.id);
+      return Expense.findById(args.id);
     },
   },
 };
@@ -86,9 +87,9 @@ const expenseMutations = {
   addExpense: {
     type: ExpenseType,
     args: {
-      expenseInput: { type: new GraphQLNonNull(ExpenseInputType) },
+      expenseInput: { type: new GraphQLNonNull(ExpenseInputType) }
     },
-    async resolve(parent, { expenseInput }, context) {
+    resolve(parent, { expenseInput }, context) {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
@@ -96,7 +97,7 @@ const expenseMutations = {
         user: context.userId,
         ...expenseInput,
       });
-      return await expense.save();
+      return expense.save();
     },
   },
   updateExpense: {
@@ -105,13 +106,13 @@ const expenseMutations = {
       id: { type: new GraphQLNonNull(GraphQLID) },
       amount: { type: GraphQLFloat },
       category: { type: GraphQLString },
-      description: { type: GraphQLString },
+      description: { type: GraphQLString }
     },
-    async resolve(parent, args, context) {
+    resolve(parent, args, context) {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
-      return await Expense.findByIdAndUpdate(
+      return Expense.findByIdAndUpdate(
         args.id,
         {
           $set: {
@@ -127,11 +128,11 @@ const expenseMutations = {
   deleteExpense: {
     type: ExpenseType,
     args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-    async resolve(parent, args, context) {
+    resolve(parent, args, context) {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
-      return await Expense.findByIdAndRemove(args.id);
+      return Expense.findByIdAndRemove(args.id);
     },
   },
 };
@@ -142,6 +143,7 @@ module.exports = {
   },
   Mutation: {
     ...expenseMutations,
+    ...budgetMutations, // Add budget mutations here
     createUser: createUserMutation,
     login: loginMutation,
   },

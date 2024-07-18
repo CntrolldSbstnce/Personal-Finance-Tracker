@@ -1,5 +1,6 @@
 const { GraphQLSchema, GraphQLObjectType } = require('graphql');
 const { expenseQueries, expenseMutations } = require('./expense');
+const { budgetMutations } = require('./budget');
 const resolvers = require('../resolvers'); // Adjust path as necessary
 
 const Query = new GraphQLObjectType({
@@ -13,6 +14,7 @@ const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
     ...expenseMutations,
+    ...budgetMutations,
     createUser: resolvers.Mutation.createUser, // Integrate createUser mutation from resolvers
     login: resolvers.Mutation.login, // Integrate login mutation from resolvers
   },

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from '@apollo/client';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { REGISTER_USER, LOGIN_USER } from '../graphql/mutations';
+import { LOGIN_USER, REGISTER_USER } from '../graphql/mutations';
 
 const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -11,32 +11,35 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const navigate = useNavigate();
 
-  const [registerUser] = useMutation(REGISTER_USER);
-  const [loginUser] = useMutation(LOGIN_USER);
+  const [registerUser, { loading: registerLoading, error: registerError }] = useMutation(REGISTER_USER, {
+    onCompleted: (data) => {
+      localStorage.setItem('token', data.register.token);
+      navigate('/dashboard');
+    }
+  });
+
+  const [loginUser, { loading: loginLoading, error: loginError }] = useMutation(LOGIN_USER, {
+    onCompleted: (data) => {
+      localStorage.setItem('token', data.login.token);
+      navigate('/dashboard');
+    }
+  });
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Attempting to log in...', { email, password });
-      const { data } = await loginUser({ variables: { email, password } });
-      console.log('Login response:', data);
-      localStorage.setItem('token', data.login.token);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
+      await loginUser({ variables: { email, password } });
+    } catch (err) {
+      console.error('Login error:', err);
     }
   };
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Attempting to register...', { username, email, password });
-      const { data } = await registerUser({ variables: { username, email, password } });
-      console.log('Register response:', data);
-      localStorage.setItem('token', data.register.token);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Register error:', error);
+      await registerUser({ variables: { username, email, password } });
+    } catch (err) {
+      console.error('Register error:', err);
     }
   };
 
@@ -52,6 +55,7 @@ const Login = () => {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
                 required
               />
             </div>
@@ -62,6 +66,7 @@ const Login = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
               required
             />
           </div>
@@ -71,10 +76,14 @@ const Login = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
               required
             />
           </div>
-          <Button type="submit">{isRegistering ? 'Register' : 'Login'}</Button>
+          <Button type="submit" disabled={isRegistering ? registerLoading : loginLoading}>
+            {isRegistering ? (registerLoading ? 'Registering...' : 'Register') : (loginLoading ? 'Logging in...' : 'Login')}
+          </Button>
+          {isRegistering ? registerError && <p>Error: {registerError.message}</p> : loginError && <p>Error: {loginError.message}</p>}
         </Form>
         <ToggleLink onClick={() => setIsRegistering(!isRegistering)}>
           {isRegistering ? 'Already have an account? Login' : "Don't have an account? Register"}

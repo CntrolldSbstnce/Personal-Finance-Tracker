@@ -1,34 +1,51 @@
-const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLFloat, GraphQLList, GraphQLNonNull } = require('graphql');
+const { GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLID, GraphQLFloat, GraphQLList, GraphQLNonNull } = require('graphql');
 const Expense = require('../models/Expense');
-const User = require('../models/User');
+const UserType = require('./user').UserType;
 
 const ExpenseType = new GraphQLObjectType({
   name: 'Expense',
   fields: () => ({
     id: { type: GraphQLID },
     user: {
-      type: require('./user').UserType,
+      type: UserType,
       resolve(parent, args) {
-        return User.findById(parent.user);
+        return require('../models/User').findById(parent.user);
       }
     },
     amount: { type: GraphQLFloat },
     category: { type: GraphQLString },
-    date: { type: GraphQLString }
+    date: { type: GraphQLString }, // Change to GraphQLString
+    description: { type: GraphQLString }
   })
+});
+
+const ExpenseInputType = new GraphQLInputObjectType({
+  name: 'ExpenseInput',
+  fields: {
+    amount: { type: new GraphQLNonNull(GraphQLFloat) },
+    category: { type: new GraphQLNonNull(GraphQLString) },
+    date: { type: GraphQLString }, // Change to GraphQLString
+    description: { type: new GraphQLNonNull(GraphQLString) }
+  }
 });
 
 const expenseQueries = {
   expenses: {
     type: new GraphQLList(ExpenseType),
-    resolve(parent, args) {
-      return Expense.find({});
+    resolve(parent, args, context) {
+      if (!context.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+      return Expense.find({ user: context.userId });
     }
   },
   expense: {
     type: ExpenseType,
     args: { id: { type: GraphQLID } },
-    resolve(parent, args) {
+    resolve(parent, args, context) {
+      if (!context.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
       return Expense.findById(args.id);
     }
   }
@@ -38,16 +55,21 @@ const expenseMutations = {
   addExpense: {
     type: ExpenseType,
     args: {
-      user: { type: new GraphQLNonNull(GraphQLID) },
-      amount: { type: new GraphQLNonNull(GraphQLFloat) },
-      category: { type: new GraphQLNonNull(GraphQLString) }
+      expenseInput: { type: new GraphQLNonNull(ExpenseInputType) }
     },
-    resolve(parent, args) {
-      let expense = new Expense({
-        user: args.user,
-        amount: args.amount,
-        category: args.category
+    resolve(parent, { expenseInput }, context) {
+      if (!context.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+
+      const expense = new Expense({
+        user: context.userId,
+        amount: expenseInput.amount,
+        category: expenseInput.category,
+        date: expenseInput.date || new Date().toISOString(), // Handle date as string
+        description: expenseInput.description
       });
+
       return expense.save();
     }
   },
@@ -56,15 +78,21 @@ const expenseMutations = {
     args: {
       id: { type: new GraphQLNonNull(GraphQLID) },
       amount: { type: GraphQLFloat },
-      category: { type: GraphQLString }
+      category: { type: GraphQLString },
+      description: { type: GraphQLString }
     },
-    resolve(parent, args) {
+    resolve(parent, args, context) {
+      if (!context.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+
       return Expense.findByIdAndUpdate(
         args.id,
         {
           $set: {
             amount: args.amount,
-            category: args.category
+            category: args.category,
+            description: args.description
           }
         },
         { new: true }
@@ -74,7 +102,10 @@ const expenseMutations = {
   deleteExpense: {
     type: ExpenseType,
     args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-    resolve(parent, args) {
+    resolve(parent, args, context) {
+      if (!context.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
       return Expense.findByIdAndRemove(args.id);
     }
   }
@@ -82,6 +113,7 @@ const expenseMutations = {
 
 module.exports = {
   ExpenseType,
+  ExpenseInputType,
   expenseQueries,
   expenseMutations
 };

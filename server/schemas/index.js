@@ -1,21 +1,24 @@
 const { GraphQLSchema, GraphQLObjectType } = require('graphql');
-const { userQueries, userMutations } = require('./user');
+const { expenseQueries, expenseMutations } = require('./expense');
+const resolvers = require('../resolvers'); // Adjust path as necessary
 
-const RootQuery = new GraphQLObjectType({
-  name: 'RootQueryType',
+const Query = new GraphQLObjectType({
+  name: 'Query',
   fields: {
-    ...userQueries,
+    ...expenseQueries,
   },
 });
 
 const Mutation = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
-    ...userMutations,
+    ...expenseMutations,
+    createUser: resolvers.Mutation.createUser, // Integrate createUser mutation from resolvers
+    login: resolvers.Mutation.login, // Integrate login mutation from resolvers
   },
 });
 
 module.exports = new GraphQLSchema({
-  query: RootQuery,
+  query: Query,
   mutation: Mutation,
 });

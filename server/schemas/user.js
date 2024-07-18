@@ -1,11 +1,28 @@
-const { GraphQLString, GraphQLID, GraphQLNonNull, GraphQLList } = require('graphql');
-const User = require('../models/User');
+const { GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLID, GraphQLNonNull, GraphQLList } = require('graphql');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
 const { getAuthPayloadType, getUserType } = require('./types');
 
 dotenv.config();
+
+const UserType = new GraphQLObjectType({
+  name: 'User',
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    email: { type: GraphQLString }
+  })
+});
+
+const UserInputType = new GraphQLInputObjectType({
+  name: 'UserInput',
+  fields: {
+    name: { type: GraphQLString },
+    email: { type: GraphQLString },
+    password: { type: GraphQLString }
+  }
+});
 
 const userQueries = {
   user: {
@@ -21,6 +38,34 @@ const userQueries = {
       return User.find({});
     }
   }
+};
+const loginMutation = {
+  type: new GraphQLObjectType({
+    name: 'AuthPayload',
+    fields: {
+      userId: { type: GraphQLID },
+      token: { type: GraphQLString },
+      tokenExpiration: { type: GraphQLString },
+    },
+  }),
+  args: {
+    email: { type: new GraphQLNonNull(GraphQLString) },
+    password: { type: new GraphQLNonNull(GraphQLString) },
+  },
+  async resolve(_, { email, password }) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new Error('User does not exist!');
+    }
+    const isEqual = await bcrypt.compare(password, user.password);
+    if (!isEqual) {
+      throw new Error('Password is incorrect!');
+    }
+    const token = jwt.sign({ userId: user.id, email: user.email }, 'somesupersecretkey', {
+      expiresIn: '1h',
+    });
+    return { userId: user.id, token, tokenExpiration: '1h' };
+  },
 };
 
 const userMutations = {
@@ -92,6 +137,9 @@ const userMutations = {
 };
 
 module.exports = {
+  UserType,
   userQueries,
-  userMutations
+  userMutations,
+  loginMutation,
+  UserInputType
 };

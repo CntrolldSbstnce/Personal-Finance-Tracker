@@ -17,9 +17,6 @@ const Dashboard = () => {
             <Link to="/budget">Budget</Link>
           </li>
           <li>
-            <Link to="/savings-goals">Savings Goals</Link>
-          </li>
-          <li>
             <Link to="/financial-summary">Financial Summary</Link>
           </li>
         </ul>

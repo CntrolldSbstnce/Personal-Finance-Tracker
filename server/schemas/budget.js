@@ -1,87 +1,57 @@
-const { GraphQLObjectType, GraphQLString, GraphQLID, GraphQLFloat, GraphQLList, GraphQLNonNull } = require('graphql');
+const { GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLID, GraphQLFloat, GraphQLNonNull } = require('graphql');
 const Budget = require('../models/Budget');
-const User = require('../models/User');
+const UserType = require('./user').UserType;
 
 const BudgetType = new GraphQLObjectType({
   name: 'Budget',
   fields: () => ({
     id: { type: GraphQLID },
     user: {
-      type: require('./user').UserType,
+      type: UserType,
       resolve(parent, args) {
-        return User.findById(parent.user);
+        return require('../models/User').findById(parent.user);
       }
     },
-    category: { type: GraphQLString },
-    amount: { type: GraphQLFloat },
-    createdAt: { type: GraphQLString }
+    totalIncome: { type: GraphQLFloat },
+    totalExpenses: { type: GraphQLFloat },
+    savings: { type: GraphQLFloat },
+    description: { type: GraphQLString }
   })
 });
 
-const budgetQueries = {
-  budgets: {
-    type: new GraphQLList(BudgetType),
-    resolve(parent, args) {
-      return Budget.find({});
-    }
-  },
-  budget: {
-    type: BudgetType,
-    args: { id: { type: GraphQLID } },
-    resolve(parent, args) {
-      return Budget.findById(args.id);
-    }
+const BudgetInputType = new GraphQLInputObjectType({
+  name: 'BudgetInput',
+  fields: {
+    totalIncome: { type: new GraphQLNonNull(GraphQLFloat) },
+    totalExpenses: { type: new GraphQLNonNull(GraphQLFloat) },
+    savings: { type: new GraphQLNonNull(GraphQLFloat) },
+    description: { type: GraphQLString }
   }
-};
+});
 
 const budgetMutations = {
-  addBudget: {
+  setBudget: {
     type: BudgetType,
     args: {
-      user: { type: new GraphQLNonNull(GraphQLID) },
-      category: { type: new GraphQLNonNull(GraphQLString) },
-      amount: { type: new GraphQLNonNull(GraphQLFloat) }
+      budgetInput: { type: new GraphQLNonNull(BudgetInputType) }
     },
-    resolve(parent, args) {
-      let budget = new Budget({
-        user: args.user,
-        category: args.category,
-        amount: args.amount
+    resolve(parent, { budgetInput }, context) {
+      if (!context.isAuth) {
+        throw new Error('Unauthenticated!');
+      }
+
+      const budget = new Budget({
+        user: context.userId,
+        ...budgetInput,
       });
+
       return budget.save();
-    }
-  },
-  updateBudget: {
-    type: BudgetType,
-    args: {
-      id: { type: new GraphQLNonNull(GraphQLID) },
-      category: { type: GraphQLString },
-      amount: { type: GraphQLFloat }
-    },
-    resolve(parent, args) {
-      return Budget.findByIdAndUpdate(
-        args.id,
-        {
-          $set: {
-            category: args.category,
-            amount: args.amount
-          }
-        },
-        { new: true }
-      );
-    }
-  },
-  deleteBudget: {
-    type: BudgetType,
-    args: { id: { type: new GraphQLNonNull(GraphQLID) } },
-    resolve(parent, args) {
-      return Budget.findByIdAndRemove(args.id);
     }
   }
 };
 
 module.exports = {
   BudgetType,
-  budgetQueries,
+  BudgetInputType,
   budgetMutations
 };

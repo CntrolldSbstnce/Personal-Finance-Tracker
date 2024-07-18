@@ -22,8 +22,6 @@ const BudgetType = new GraphQLObjectType({
 const BudgetInputType = new GraphQLInputObjectType({
   name: 'BudgetInput',
   fields: {
-    totalIncome: { type: new GraphQLNonNull(GraphQLFloat) },
-    totalExpenses: { type: new GraphQLNonNull(GraphQLFloat) },
     savings: { type: new GraphQLNonNull(GraphQLFloat) },
     description: { type: GraphQLString }
   }
@@ -35,17 +33,27 @@ const budgetMutations = {
     args: {
       budgetInput: { type: new GraphQLNonNull(BudgetInputType) }
     },
-    resolve(parent, { budgetInput }, context) {
+    async resolve(parent, { budgetInput }, context) {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
 
-      const budget = new Budget({
-        user: context.userId,
-        ...budgetInput,
-      });
-
-      return budget.save();
+      const existingBudget = await Budget.findOne({ user: context.userId });
+      if (existingBudget) {
+        // Update existing budget
+        existingBudget.savings = budgetInput.savings;
+        existingBudget.description = budgetInput.description;
+        return existingBudget.save();
+      } else {
+        // Create a new budget if none exists
+        const newBudget = new Budget({
+          user: context.userId,
+          totalIncome: 0,
+          totalExpenses: 0,
+          ...budgetInput,
+        });
+        return newBudget.save();
+      }
     }
   }
 };

@@ -1,4 +1,4 @@
-const { GraphQLObjectType, GraphQLInputObjectType, GraphQLString, GraphQLID, GraphQLFloat, GraphQLList, GraphQLNonNull } = require('graphql');
+const { GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLString, GraphQLID, GraphQLFloat, GraphQLNonNull } = require('graphql');
 const Expense = require('../models/Expense');
 const UserType = require('./user').UserType;
 
@@ -14,7 +14,7 @@ const ExpenseType = new GraphQLObjectType({
     },
     amount: { type: GraphQLFloat },
     category: { type: GraphQLString },
-    date: { type: GraphQLString }, // Change to GraphQLString
+    date: { type: GraphQLString },
     description: { type: GraphQLString }
   })
 });
@@ -24,8 +24,8 @@ const ExpenseInputType = new GraphQLInputObjectType({
   fields: {
     amount: { type: new GraphQLNonNull(GraphQLFloat) },
     category: { type: new GraphQLNonNull(GraphQLString) },
-    date: { type: GraphQLString }, // Change to GraphQLString
-    description: { type: new GraphQLNonNull(GraphQLString) }
+    date: { type: new GraphQLNonNull(GraphQLString) },
+    description: { type: GraphQLString }
   }
 });
 
@@ -61,15 +61,10 @@ const expenseMutations = {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
-
       const expense = new Expense({
         user: context.userId,
-        amount: expenseInput.amount,
-        category: expenseInput.category,
-        date: expenseInput.date || new Date().toISOString(), // Handle date as string
-        description: expenseInput.description
+        ...expenseInput,
       });
-
       return expense.save();
     }
   },
@@ -85,15 +80,14 @@ const expenseMutations = {
       if (!context.isAuth) {
         throw new Error('Unauthenticated!');
       }
-
       return Expense.findByIdAndUpdate(
         args.id,
         {
           $set: {
             amount: args.amount,
             category: args.category,
-            description: args.description
-          }
+            description: args.description,
+          },
         },
         { new: true }
       );

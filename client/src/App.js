@@ -3,9 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import IncomeExpenses from './pages/IncomeExpenses';
-import Budget from './pages/Budget';
-import FinancialSummary from './pages/FinancialSummary';
-import Expenses from './components/Expenses'; // Adjust the import path as necessary
+import Budget from './components/Budget';
 
 const App = () => {
   return (
@@ -14,7 +12,6 @@ const App = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/income-expenses" element={<IncomeExpenses />} />
       <Route path="/budget" element={<Budget />} />
-      <Route path="/financial-summary" element={<FinancialSummary />} />
       <Route path="/" element={<Login />} />
     </Routes>
   );

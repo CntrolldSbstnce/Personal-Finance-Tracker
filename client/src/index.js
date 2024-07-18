@@ -1,14 +1,16 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import ApolloProviderWrapper from './apolloClient';
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <ApolloProviderWrapper>
     <Router>
       <App />
     </Router>
-  </ApolloProviderWrapper>,
-  document.getElementById('root')
+  </ApolloProviderWrapper>
 );

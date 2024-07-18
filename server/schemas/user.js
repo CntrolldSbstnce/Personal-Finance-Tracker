@@ -10,8 +10,12 @@ const UserType = new GraphQLObjectType({
   name: 'User',
   fields: () => ({
     id: { type: GraphQLID },
+    userId: { type: GraphQLID },  // Add userId field here
     name: { type: GraphQLString },
-    email: { type: GraphQLString }
+    email: { type: GraphQLString },
+    username: { type: GraphQLString }, // Add username field here
+    token: { type: GraphQLString },  // Add token field here
+    tokenExpiration: { type: GraphQLString }  // Add tokenExpiration field here
   })
 });
 
@@ -20,7 +24,8 @@ const UserInputType = new GraphQLInputObjectType({
   fields: {
     name: { type: GraphQLString },
     email: { type: GraphQLString },
-    password: { type: GraphQLString }
+    password: { type: GraphQLString },
+    username: { type: GraphQLString } // Add username field here
   }
 });
 
@@ -39,6 +44,7 @@ const userQueries = {
     }
   }
 };
+
 const loginMutation = {
   type: new GraphQLObjectType({
     name: 'AuthPayload',

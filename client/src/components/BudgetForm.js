@@ -14,34 +14,28 @@ const SET_BUDGET_MUTATION = gql`
 `;
 
 const BudgetForm = ({ refetchBudget }) => {
-  const [totalIncome, setTotalIncome] = useState('');
-  const [totalExpenses, setTotalExpenses] = useState('');
   const [savings, setSavings] = useState('');
   const [description, setDescription] = useState('');
 
   const [setBudget, { loading, error }] = useMutation(SET_BUDGET_MUTATION, {
     onCompleted: () => {
       refetchBudget();
+      setSavings('');
+      setDescription('');
     }
   });
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
     try {
       await setBudget({
         variables: {
           budgetInput: {
-            totalIncome: parseFloat(totalIncome),
-            totalExpenses: parseFloat(totalExpenses),
             savings: parseFloat(savings),
             description
           }
         }
       });
-      setTotalIncome('');
-      setTotalExpenses('');
-      setSavings('');
-      setDescription('');
     } catch (err) {
       console.error('Error setting budget:', err);
     }
@@ -49,14 +43,6 @@ const BudgetForm = ({ refetchBudget }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div>
-        <label>Total Income</label>
-        <input type="number" value={totalIncome} onChange={(e) => setTotalIncome(e.target.value)} required />
-      </div>
-      <div>
-        <label>Total Expenses</label>
-        <input type="number" value={totalExpenses} onChange={(e) => setTotalExpenses(e.target.value)} required />
-      </div>
       <div>
         <label>Savings</label>
         <input type="number" value={savings} onChange={(e) => setSavings(e.target.value)} required />
